@@ -13,7 +13,7 @@
 const $ = API("sub-store");
 const Base64 = new Base64Code();
 
-service();
+// service();
 
 /****************************************** Service **********************************************************/
 
@@ -4586,3 +4586,11 @@ var YAML = (function () {
         },
     };
 })();
+
+
+/****************************************** Debug **********************************************************/
+proxies = ProxyUtils.parse(`
+ss://Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTpESkxZbGlxQ1g5dmVFbjBPMTRANTQuMjM4Ljg2LjI1NDoxMzAzMw==
+`);
+
+console.log(proxies,'\r\n', ProxyUtils.produce(proxies, 'QX')); //QX, Surge, Loon, Clash, URI, Json
