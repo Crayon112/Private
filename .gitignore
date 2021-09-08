@@ -1,5 +1,2 @@
-.vs
 .vscode
-.github
 node_modules
-**/**.json
