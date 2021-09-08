@@ -1,98 +1,93 @@
-# 美团
+# 美团买菜
 
-> 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
+美团买菜每日自动签到
 
-> QuanX 需要: v1.0.6-build195 及以后版本 (TestFlight)
+## 配置说明
 
-## 配置 (Surge)
+### Surge
 
-```properties
-[MITM]
-hostname = i.meituan.com
+使用模块
 
-[Script]
-http-request ^https:\/\/i.meituan.com\/evolve\/signin\/signpost\/ script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/meituan/meituan.cookie.js, requires-body=true
-cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/meituan/meituan.js
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/meituan/maicai_checkin.sgmodule
+
+### Loon
+
+使用远程脚本配置
+
+```ini
+[Remote Script]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/meituan/maicai_checkin.lnscript, tag=美团买菜_每日签到, enabled=true
 ```
 
-## 配置 (QuanX)
+### Quantumult X
 
-```properties
-[MITM]
-i.meituan.com
+配置文件
 
-[rewrite_local]
-
-# [商店版] QuanX v1.0.6-build194 及更早版本
-# 不支持
-
-# [TestFlight] QuanX v1.0.6-build195 及以后版本
-^https:\/\/i.meituan.com\/evolve\/signin\/signpost\/ url script-request-body meituan.cookie.js
+```ini
+[rewrite_remote]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/meituan/maicai_checkin.qxrewrite, tag=美团买菜_获取Cookie, enabled=true
 
 [task_local]
-1 0 * * * meituan.js
+30 0 * * * https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/meituan/maicai_checkin.js, tag=美团买菜_每日签到, enabled=true
 ```
 
-## 说明
+## 获取Cookie
 
-1. 先把`i.meituan.com`加到`[MITM]`
-2. 再配置重写规则:
-   - Surge: 把两条远程脚本放到`[Script]`
-   - QuanX: 把`meituan.cookie.js`和`meituan.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-3. 打开 APP , 然后手动签到 1 次, 系统提示: `获取Cookie: 成功` (`首页` > `红包签到`)
-4. 把获取 Cookie 的脚本注释掉
-5. 运行一次脚本, 如果提示重复签到, 那就算成功了!
+打开美团App，选择“美团买菜” - “我的”  - “天天领钱”
 
-> 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
+## 统一推送
 
-> 第 2 条脚本是签到脚本, 每天`00:00:10`执行一次.
+MagicJS利用Bark，实现了跨设备的统一推送能力，将多个iOS设备的脚本执行结果，统一推送到一个设备上。
 
-## 常见问题
+执行效果图，以饿了么为例：
 
-1. 无法写入 Cookie
+![](https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/eleme/images/bark.jpg)
 
-   - 检查 Surge 系统通知权限放开了没
-   - 如果你用的是 Safari, 请尝试在浏览地址栏`手动输入网址`(不要用复制粘贴)
+### 开启统一推送
 
-2. 写入 Cookie 成功, 但签到不成功
+你需要安装Bark这个APP，打开后可以得到类似这样的链接：
 
-   - 看看是不是在登录前就写入 Cookie 了
-   - 如果是，请确保在登录成功后，再尝试写入 Cookie
+```http
+https://api.day.app/VXTWvaQ18N29bsQAg7DgkT
+```
 
-3. 为什么有时成功有时失败
+在Surge、Loon、QuantumultX中执行以下代码，将链接写入(如何执行代码请自己动手解决)。
 
-   - 很正常，网络问题，哪怕你是手工签到也可能失败（凌晨签到容易拥堵就容易失败）
-   - 暂时不考虑代码级的重试机制，但咱有配置级的（暴力美学）：
+**Surge、Loon**
 
-   - `Surge`配置:
+```javascript
+# 开启所有脚本统一推送
+$persistentStore.write("https://api.day.app/VXTWvaQ18N29bsQAg7DgkT", "magicjs_unified_push_url");
+```
 
-     ```properties
-     # 没有什么是一顿饭解决不了的:
-     cron "10 0 0 * * *" script-path=xxx.js # 每天00:00:10执行一次
-     # 如果有，那就两顿:
-     cron "20 0 0 * * *" script-path=xxx.js # 每天00:00:20执行一次
-     # 实在不行，三顿也能接受:
-     cron "30 0 0 * * *" script-path=xxx.js # 每天00:00:30执行一次
+**Quantumult X**
 
-     # 再粗暴点，直接:
-     cron "* */60 * * * *" script-path=xxx.js # 每60分执行一次
-     ```
+```javascript
+# 开启所有脚本统一推送
+$prefs.setValueForKey("https://api.day.app/VXTWvaQ18N29bsQAg7DgkT", "magicjs_unified_push_url");
+```
 
-   - `QuanX`配置:
+### 关闭统一推送
 
-     ```properties
-     [task_local]
-     1 0 * * * xxx.js # 每天00:01执行一次
-     2 0 * * * xxx.js # 每天00:02执行一次
-     3 0 * * * xxx.js # 每天00:03执行一次
+**Surge、Loon**
 
-     */60 * * * * xxx.js # 每60分执行一次
-     ```
+```javascript
+# 关闭所有脚本统一推送
+$persistentStore.write("", "magicjs_unified_push_url");
+```
 
-## 感谢
+**Quantumult X**
 
-[@NobyDa](https://github.com/NobyDa)
+```javascript
+# 关闭所有脚本统一推送
+$prefs.setValueForKey("", "magicjs_unified_push_url");
+```
 
-[@lhie1](https://github.com/lhie1)
+### 其他
 
-[@ConnersHua](https://github.com/ConnersHua)
+1. 统一推送能力仅对支持的脚本有效。
+2. 开启统一推送后，所有支持统一推送的脚本，都会把通知推送到目标设备上。
+3. 限于Bark的功能，统一推送中的多媒体和链接不可用。
+4. 统一推送需要使用Bark的服务器，推送成功与否，与Bark服务器的可用性有关。
+5. 统一推送不会关闭APP的本地推送，即两个iOS设备都会有推送。
+6. 如有隐私考虑，可以参考Bark的服务端文档，自建服务端。

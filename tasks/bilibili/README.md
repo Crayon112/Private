@@ -1,107 +1,72 @@
-# bilibili
+# 哔哩哔哩
 
-> 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
+## 去广告
 
-> 目前可签 bilibili 直播 (直播!直播!直播!) + 银瓜子转硬币
+### 介绍
 
-> 2020.1.11 QuanX 在`190`版本开始, 获取 Cookie 方式需要从`script-response-body`改为`script-request-header`
+哔哩哔哩APP去广告，没有广告的哔哩哔哩更值得干杯。
 
-> 2020.3.16 添加银瓜子转硬币脚本 感谢[@lcandy2](https://github.com/lcandy2) PR
+目前已实现：
 
-## 配置 (Surge)
+1. 去除启动广告
+2. 去除“推荐”页面广告
+3. 去除“追番”页面广告
+4. 去除“直播”页面广告
+5. 精简“我的”页面功能
+6. 去除“动态”中的话题
+7. 去除“动态”中的最常访问
+8. 精简顶部标签页
+9. 去除底部会员购
+10. 增加一键Story模式
 
-```properties
-[MITM]
-*.bilibili.com
+支持哔哩哔哩与哔哩哔哩概念版
 
-[Script]
-http-request ^https:\/\/(www|live)\.bilibili\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bilibili/bilibili.cookie.js
-cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bilibili/bilibili.js
-# 如需银瓜子转硬币，添加以下内容 
-cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/bilibili/bilibili.silver2coin.js
+### 特别说明
+
+#### 去APP启动广告
+
+目前几乎所有的整合型去广告规则都带有去除哔哩哔哩启动广告的规则。通过对类似`^https?:\/\/app\.bilibili\.com\/x\/v2\/splash\/list`
+
+正则复写的拦截来屏蔽启动广告。这在大部分情况下都是有效的，但是如果忘记打开VPN或其他原因导致拦截失败，启动广告缓存到APP中后，下次启动启动广告就会出现。此时再通过正则去拦截已无能为力，只能重装APP或等待广告过期。
+
+在本项目的去广告策略中，采取的是对启动广告请求进行放行，同时通过脚本将广告生效时间设置到2030年以去除启动广告。这样做的好处是即使某次拦截失败，下次APP重新请求一次广告后，启动广告就会消失，不需要重装APP。
+
+但这种策略会与几乎所有的整合型去广告规则产生冲突，因为在复写阶段请求就被拦截掉，后续的脚本没法进行处理。
+
+所以，如果在使用过程中，出现APP启动广告反复出现，请尝试将分流和复写规则中所有关于哔哩哔哩的规则进行去除，仅保留本脚本的相关复写。
+
+### 部署说明
+
+#### Surge
+
+使用模块
+
+```ini
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/bilibili/bilibili_plus.sgmodule
 ```
 
-## 配置 (QuanX)
+#### Quantumult X
 
-```properties
-[MITM]
-*.bilibili.com
+配置文件
 
-[rewrite_local]
-# 189及以前版本
-^https:\/\/(www|live)\.bilibili\.com\/?.? url script-response-body bilibili.cookie.js
-# 190及以后版本
-^https:\/\/(www|live)\.bilibili\.com\/?.? url script-request-header bilibili.cookie.js
-
-[task_local]
-1 0 * * * bilibili.js
-# 如需银瓜子转硬币，添加以下内容 
-1 0 * * * bilibili.silver2coin.js
+```ini
+[rewrite_remote]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/bilibili/bilibili_plus.qxrewrite, tag=哔哩哔哩_去广告, update-interval=86400, opt-parser=false, enabled=true
 ```
 
-## 说明
+### Loon
 
-1. 先在浏览器登录 `(先登录! 先登录! 先登录!)`
-2. 先把`*.bilibili.com`加到`[MITM]`
-3. 再配置重写规则:
-   - Surge: 把两条远程脚本放到`[Script]`
-   - QuanX: 把`bilibili.cookie.js`和`bilibili.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-4. 打开浏览器访问: https://www.bilibili.com 或 https://live.bilibili.com
-5. 系统提示: `获取Cookie: 成功`
-6. 最后就可以把第 1 条脚本注释掉了
+使用插件
 
-> 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
+```ini
+[Plugin]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/bilibili/bilibili_plus.lnplugin, tag=哔哩哔哩_去广告, enabled=true
+```
 
-> 第 2 条脚本是签到脚本, 每天`00:00:10`执行一次.
+## 签到
 
-## 常见问题
-
-1. 无法写入 Cookie
-
-   - 检查 Surge 系统通知权限放开了没
-   - 如果你用的是 Safari, 请尝试在浏览地址栏`手动输入网址`(不要用复制粘贴)
-
-2. 写入 Cookie 成功, 但签到不成功
-
-   - 看看是不是在登录前就写入 Cookie 了
-   - 如果是，请确保在登录成功后，再尝试写入 Cookie
-
-3. 为什么有时成功有时失败
-
-   - 很正常，网络问题，哪怕你是手工签到也可能失败（凌晨签到容易拥堵就容易失败）
-   - 暂时不考虑代码级的重试机制，但咱有配置级的（暴力美学）：
-
-   - `Surge`配置:
-
-     ```properties
-     # 没有什么是一顿饭解决不了的:
-     cron "10 0 0 * * *" script-path=xxx.js # 每天00:00:10执行一次
-     # 如果有，那就两顿:
-     cron "20 0 0 * * *" script-path=xxx.js # 每天00:00:20执行一次
-     # 实在不行，三顿也能接受:
-     cron "30 0 0 * * *" script-path=xxx.js # 每天00:00:30执行一次
-
-     # 再粗暴点，直接:
-     cron "* */60 * * * *" script-path=xxx.js # 每60分执行一次
-     ```
-
-   - `QuanX`配置:
-
-     ```properties
-     [task_local]
-     1 0 * * * xxx.js # 每天00:01执行一次
-     2 0 * * * xxx.js # 每天00:02执行一次
-     3 0 * * * xxx.js # 每天00:03执行一次
-
-     */60 * * * * xxx.js # 每60分执行一次
-     ```
+等待抽空填坑
 
 ## 感谢
 
-[@NobyDa](https://github.com/NobyDa)
-
-[@lhie1](https://github.com/lhie1)
-
-[@ConnersHua](https://github.com/ConnersHua)
-
-[@lcandy2](https://github.com/lcandy2)
+[@MisterGlasses](https://github.com/MisterGlasses)  [@Mazeorz](https://github.com/Mazeorz)

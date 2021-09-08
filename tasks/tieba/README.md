@@ -1,103 +1,120 @@
-# 百度签到
+# 百度贴吧签到
 
-> 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
+## 前言
 
-> 目前支持签到: 贴吧、知道 (2 合 1)
+参考 https://github.com/NobyDa/Script/tree/master/BDTieBa-DailyBonus 做了彻底的重写。
 
-> 之前已经获取过贴吧 cookie 的话，不需要再次获取 (通用)
+做如下改动：
 
-> 2020.1.3: 屏蔽文库签到, 原因: 实际签不上
+1. 精简合并通知
 
-> 2020.1.11 QuanX 在`190`版本开始, 获取 Cookie 方式需要从`script-response-body`改为`script-request-header`
+   只显示签到贴吧总数、成功数量、失败数量，签到明细只会显示失败的，因为我并不关心哪些贴吧签到成功。
 
-## 配置 (Surge)
+2. 增加重试机制
 
-```properties
-[MITM]
-tieba.baidu.com
+   针对签到失败的贴吧，进行10次，每次间隔2秒的重试，可以极大提高签到成功率。
 
-[Script]
-http-request ^https?:\/\/tieba\.baidu\.com\/?.? script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/tieba/tieba.cookie.js
-cron "10 0 0 * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/tieba/tieba.js
+
+## 配置
+
+### Surge
+
+使用模块
+
+```ini
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/tieba/tieba_checkin.sgmodule
 ```
 
-## 配置 (QuanX)
+### Quantumult X
 
-```properties
-[MITM]
-tieba.baidu.com
-
-[rewrite_local]
-# 189及以前版本
-^https?:\/\/tieba\.baidu\.com\/?.? url script-response-body tieba.cookie.js
-# 190及以后版本
-^https?:\/\/tieba\.baidu\.com\/?.? url script-request-header tieba.cookie.js
+```ini
+[rewrite_remote]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/tieba/tieba_checkin.qxrewrite, tag=贴吧_获取Cookie, update-interval=86400, opt-parser=false, enabled=true
 
 [task_local]
-1 0 * * * tieba.js
+30 0 * * *  https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/tieba/tieba_checkin.js, tag=贴吧_每日签到, enabled=true
 ```
 
-## 说明
+### Loon
 
-1. 先在浏览器登录 `(先登录! 先登录! 先登录!)`
-2. 先把`tieba.baidu.com`加到`[MITM]`
-3. 再配置重写规则:
-   - Surge: 把两条远程脚本放到`[Script]`
-   - QuanX: 把`tieba.cookie.js`和`tieba.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-4. 再用浏览器访问一下: https://tieba.baidu.com 或者 https://tieba.baidu.com/index/
-5. 系统提示: `获取Cookie: 成功`
-6. 最后就可以把第 1 条脚本注释掉了
+配置文件
 
-> 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
+```ini
+[Remote Script]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/tieba/tieba_checkin.lnscript, tag=贴吧_每日签到, enabled=true
+```
 
-> 第 2 条脚本是签到脚本, 每天`00:00:10`执行一次.
+## 获取Cookie
 
-## 常见问题
+关闭贴吧后台，重新进入一次贴吧即可。
 
-1. 无法写入 Cookie
+![](https://github.com/blackmatrix7/ios_rule_script/blob/master/script/tieba/images/03.jpg?raw=true)
 
-   - 检查 Surge 系统通知权限放开了没
-   - 如果你用的是 Safari, 请尝试在浏览地址栏`手动输入网址`(不要用复制粘贴)
+## 签到
 
-2. 写入 Cookie 成功, 但签到不成功
+带有重试机制，解决need vcode失败问题，凌晨高峰期签到也可以保证成功率。
 
-   - 看看是不是在登录前就写入 Cookie 了
-   - 如果是，请确保在登录成功后，再尝试写入 Cookie
+全部签到成功时：
 
-3. 为什么有时成功有时失败
+![](https://github.com/blackmatrix7/ios_rule_script/blob/master/script/tieba/images/01.jpg?raw=true)
 
-   - 很正常，网络问题，哪怕你是手工签到也可能失败（凌晨签到容易拥堵就容易失败）
-   - 暂时不考虑代码级的重试机制，但咱有配置级的（暴力美学）：
+部分贴吧签到失败时：
 
-   - `Surge`配置:
+![](https://github.com/blackmatrix7/ios_rule_script/blob/master/script/tieba/images/02.jpg?raw=true)
 
-     ```properties
-     # 没有什么是一顿饭解决不了的:
-     cron "10 0 0 * * *" script-path=xxx.js # 每天00:00:10执行一次
-     # 如果有，那就两顿:
-     cron "20 0 0 * * *" script-path=xxx.js # 每天00:00:20执行一次
-     # 实在不行，三顿也能接受:
-     cron "30 0 0 * * *" script-path=xxx.js # 每天00:00:30执行一次
+## 统一推送
 
-     # 再粗暴点，直接:
-     cron "* */60 * * * *" script-path=xxx.js # 每60分执行一次
-     ```
+MagicJS利用Bark，实现了跨设备的统一推送能力，将多个iOS设备的脚本执行结果，统一推送到一个设备上。
 
-   - `QuanX`配置:
+执行效果图，以饿了么为例：
 
-     ```properties
-     [task_local]
-     1 0 * * * xxx.js # 每天00:01执行一次
-     2 0 * * * xxx.js # 每天00:02执行一次
-     3 0 * * * xxx.js # 每天00:03执行一次
+![](https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/eleme/images/bark.jpg)
 
-     */60 * * * * xxx.js # 每60分执行一次
-     ```
+### 开启统一推送
 
-## 感谢
+你需要安装Bark这个APP，打开后可以得到类似这样的链接：
 
-[@NobyDa](https://github.com/NobyDa)
+```http
+https://api.day.app/VXTWvaQ18N29bsQAg7DgkT
+```
 
-[@lhie1](https://github.com/lhie1)
+在Surge、Loon、QuantumultX中执行以下代码，将链接写入(如何执行代码请自己动手解决)。
 
-[@ConnersHua](https://github.com/ConnersHua)
+**Surge、Loon**
+
+```javascript
+# 开启所有脚本统一推送
+$persistentStore.write("https://api.day.app/VXTWvaQ18N29bsQAg7DgkT", "magicjs_unified_push_url");
+```
+
+**Quantumult X**
+
+```javascript
+# 开启所有脚本统一推送
+$prefs.setValueForKey("https://api.day.app/VXTWvaQ18N29bsQAg7DgkT", "magicjs_unified_push_url");
+```
+
+### 关闭统一推送
+
+**Surge、Loon**
+
+```javascript
+# 关闭所有脚本统一推送
+$persistentStore.write("", "magicjs_unified_push_url");
+```
+
+**Quantumult X**
+
+```javascript
+# 关闭所有脚本统一推送
+$prefs.setValueForKey("", "magicjs_unified_push_url");
+```
+
+### 其他
+
+1. 统一推送能力仅对支持的脚本有效。
+2. 开启统一推送后，所有支持统一推送的脚本，都会把通知推送到目标设备上。
+3. 限于Bark的功能，统一推送中的多媒体和链接不可用。
+4. 统一推送需要使用Bark的服务器，推送成功与否，与Bark服务器的可用性有关。
+5. 统一推送不会关闭APP的本地推送，即两个iOS设备都会有推送。
+6. 如有隐私考虑，可以参考Bark的服务端文档，自建服务端。

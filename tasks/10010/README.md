@@ -1,107 +1,102 @@
-# 中国联通
+# 联通每日签到与抽奖
 
-> 代码已同时兼容 Surge & QuanX, 使用同一份签到脚本即可
+每日自动签到，显示已用流量、语音、剩余话费、可用积分，每日抽奖4次。
 
-> 注意获取 Cookie 有两条脚本
+活动期间，**每日必得一张30-3的美团外卖优惠券**，送到和当前签到同手机号的美团账号上，活动到什么时候结束我也不知道。
 
-> 如果你希望显示话费、语音、流量信息，请在支付宝中搜索小程序“中国联通”并授权登录一次
+目前还是有的，实打实的优惠，别错过。
 
-> 2020.3.12 增加每日抽奖 (需要进抽奖页面获取 Cookie) (进抽奖页会弹两个获取 Cookie 成功的消息) (签到 Cookie 不用重新获取) (增加了 rewrite 和 mitm), 注意看操作步骤说明
+## 配置说明
 
-> 2020.5.6 修复签到报错问题
+### Surge
 
-## 配置 (Surge)
+使用模块，地址
 
-```properties
-[MITM]
-hostname = act.10010.com, m.client.10010.com
-
-[Script]
-# 注意获取Cookie有两条脚本
-http-request ^https?:\/\/act.10010.com\/SigninApp\/signin\/querySigninActivity.htm script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
-http-request ^https?:\/\/act.10010.com\/SigninApp(.*?)\/signin\/daySign script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
-http-request ^https?:\/\/m.client.10010.com\/dailylottery\/static\/(textdl\/userLogin|active\/findActivityInfo) script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.cookie.js
-cron "10 0 0 * * *" script-path=https://raw.githubusercontent.com/chavyleung/scripts/master/10010/10010.js
+```ini
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/10010/unicom_signin.sgmodule
 ```
 
-## 配置 (QuanX)
+### Quantumult X
 
-```properties
-[MITM]
-hostname = act.10010.com, m.client.10010.com
-
-[rewrite_local]
-# 注意获取Cookie有两条脚本
-^https?:\/\/act.10010.com\/SigninApp\/signin\/querySigninActivity.htm url script-request-header 10010.cookie.js
-^https?:\/\/act.10010.com\/SigninApp(.*?)\/signin\/daySign url script-request-header 10010.cookie.js
-^https?:\/\/m.client.10010.com\/dailylottery\/static\/(textdl\/userLogin|active\/findActivityInfo) url script-request-header 10010.cookie.js
+```ini
+[rewrite_remote]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/10010/unicom_signin.qxrewrite, tag=联通_获取cookie, update-interval=86400, opt-parser=false, enabled=true
 
 [task_local]
-1 0 * * * 10010.js
+20 0 * * * https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/10010/unicom_signin.js, tag=联通_签到与抽奖, enabled=true
 ```
 
-## 说明
+### Loon
 
-1. 先把`act.10010.com, m.client.10010.com`加到`[MITM]`
-2. 再配置重写规则:
-   - Surge: 把两条远程脚本放到`[Script]`
-   - QuanX: 把`10010.cookie.js`和`10010.js`传到`On My iPhone - Quantumult X - Scripts` (传到 iCloud 相同目录也可, 注意要打开 quanx 的 iCloud 开关)
-3. 打开 APP , 进入签到页面, 系统提示: `获取刷新链接: 成功`
-4. 然后手动签到 1 次, 系统提示: `获取Cookie: 成功 (每日签到)`
-5. 首页>天天抽奖, 系统提示 `2` 次: `获取Cookie: 成功 (登录抽奖)` 和 `获取Cookie: 成功 (抽奖次数)`
-6. 把获取 Cookie 的脚本注释掉
-7. 运行一次脚本, 如果提示重复签到, 那就算成功了!
+```ini
+[Remote Script]
+https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/10010/unicom_signin.lnscript, tag=联通_签到与抽奖, enabled=true
+```
 
-> 第 1 条脚本是用来获取 cookie 的, 用浏览器访问一次获取 cookie 成功后就可以删掉或注释掉了, 但请确保在`登录成功`后再获取 cookie.
+## 获取Cookie
 
-> 第 2 条脚本是签到脚本, 每天`00:00:10`执行一次.
+联通手机营业厅APP经常修改“天天抽奖”入口位置，比较稳定的方法是在联通手机营业厅中搜索“天天抽奖”，直接通过搜索结果进入。
 
-## 常见问题
+## 签到效果图
 
-1. 无法写入 Cookie
+![](https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/10010/images/01.jpg)
 
-   - 检查 Surge 系统通知权限放开了没
-   - 如果你用的是 Safari, 请尝试在浏览地址栏`手动输入网址`(不要用复制粘贴)
+![](https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/10010/images/02.jpg)
 
-2. 写入 Cookie 成功, 但签到不成功
+## 统一推送
 
-   - 看看是不是在登录前就写入 Cookie 了
-   - 如果是，请确保在登录成功后，再尝试写入 Cookie
+MagicJS利用Bark，实现了跨设备的统一推送能力，将多个iOS设备的脚本执行结果，统一推送到一个设备上。
 
-3. 为什么有时成功有时失败
+执行效果图，以饿了么为例：
 
-   - 很正常，网络问题，哪怕你是手工签到也可能失败（凌晨签到容易拥堵就容易失败）
-   - 暂时不考虑代码级的重试机制，但咱有配置级的（暴力美学）：
+![](https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/script/eleme/images/bark.jpg)
 
-   - `Surge`配置:
+### 开启统一推送
 
-     ```properties
-     # 没有什么是一顿饭解决不了的:
-     cron "10 0 0 * * *" script-path=xxx.js # 每天00:00:10执行一次
-     # 如果有，那就两顿:
-     cron "20 0 0 * * *" script-path=xxx.js # 每天00:00:20执行一次
-     # 实在不行，三顿也能接受:
-     cron "30 0 0 * * *" script-path=xxx.js # 每天00:00:30执行一次
+你需要安装Bark这个APP，打开后可以得到类似这样的链接：
 
-     # 再粗暴点，直接:
-     cron "* */60 * * * *" script-path=xxx.js # 每60分执行一次
-     ```
+```http
+https://api.day.app/VXTWvaQ18N29bsQAg7DgkT
+```
 
-   - `QuanX`配置:
+在Surge、Loon、QuantumultX中执行以下代码，将链接写入(如何执行代码请自己动手解决)。
 
-     ```properties
-     [task_local]
-     1 0 * * * xxx.js # 每天00:01执行一次
-     2 0 * * * xxx.js # 每天00:02执行一次
-     3 0 * * * xxx.js # 每天00:03执行一次
+**Surge、Loon**
 
-     */60 * * * * xxx.js # 每60分执行一次
-     ```
+```javascript
+# 开启所有脚本统一推送
+$persistentStore.write("https://api.day.app/VXTWvaQ18N29bsQAg7DgkT", "magicjs_unified_push_url");
+```
 
-## 感谢
+**Quantumult X**
 
-[@NobyDa](https://github.com/NobyDa)
+```javascript
+# 开启所有脚本统一推送
+$prefs.setValueForKey("https://api.day.app/VXTWvaQ18N29bsQAg7DgkT", "magicjs_unified_push_url");
+```
 
-[@lhie1](https://github.com/lhie1)
+### 关闭统一推送
 
-[@ConnersHua](https://github.com/ConnersHua)
+**Surge、Loon**
+
+```javascript
+# 关闭所有脚本统一推送
+$persistentStore.write("", "magicjs_unified_push_url");
+```
+
+**Quantumult X**
+
+```javascript
+# 关闭所有脚本统一推送
+$prefs.setValueForKey("", "magicjs_unified_push_url");
+```
+
+### 其他
+
+1. 统一推送能力仅对支持的脚本有效。
+2. 开启统一推送后，所有支持统一推送的脚本，都会把通知推送到目标设备上。
+3. 限于Bark的功能，统一推送中的多媒体和链接不可用。
+4. 统一推送需要使用Bark的服务器，推送成功与否，与Bark服务器的可用性有关。
+5. 统一推送不会关闭APP的本地推送，即两个iOS设备都会有推送。
+6. 如有隐私考虑，可以参考Bark的服务端文档，自建服务端。
+
