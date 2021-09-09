@@ -8,7 +8,8 @@
 
 const $ = API("nCov");
 
-const key = "NOUBZ-7BNHD-SZ64A-HUWCW-YBGZ7-DDBNK";
+const ipKey = "NOUBZ-7BNHD-SZ64A-HUWCW-YBGZ7-DDBNK",
+      nCovKey = "83ac884a66b4aa8b3393c7cf84ef9ac2";
 const headers = {
     "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.141 Safari/537.36",
@@ -16,14 +17,14 @@ const headers = {
 
 !(async () => {
     // get current location
-    const province = await $.http.get(`https://apis.map.qq.com/ws/location/v1/ip?key=${key}`).then(resp => {
+    const province = await $.http.get(`https://apis.map.qq.com/ws/location/v1/ip?key=${ipKey}`).then(resp => {
         const data = JSON.parse(resp.body);
         return data.result.ad_info.province;
     });
     $.log(province);
     console.log(province);
     const newslist = await $.http.get({
-        url: "http://api.tianapi.com/txapi/ncov/index?key=5dcf1a3871f36bcc48c543c8193223fc",
+        url: `http://api.tianapi.com/txapi/ncov/index?key=${nCovKey}`,
         headers,
     }).then((resp) => JSON.parse(resp.body).newslist[0])
         .delay(1000);

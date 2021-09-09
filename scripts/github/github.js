@@ -17,7 +17,7 @@
  * 📌 如果希望监控Release，请切换至Release界面，直接复制URL填入；
  */
 
-let token = "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"; // CRAYON's Token
+let token = "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";
 
 let repositories = [
     {

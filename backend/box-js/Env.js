@@ -240,7 +240,7 @@ function Env(name, opts) {
       } else if (this.isQuanX()) {
         return $prefs.setValueForKey(val, key)
       } else if (this.isNode()) {
-        this.data = this.loaddata()
+        this.data = this.loaddata() || {}
         this.data[key] = val
         this.writedata()
         return true

@@ -1,2 +1,9 @@
 .vscode
+box.dat
 node_modules
+
+**/*debug.js
+*.json
+!package-lock.json
+
+scripts/cache.js

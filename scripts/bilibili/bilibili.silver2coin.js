@@ -3,6 +3,8 @@ const cookieKey = 'chavy_cookie_bilibili'
 const chavy = init()
 const cookieVal = chavy.getdata(cookieKey)
 
+var $done = console.log
+
 sign()
 
 function sign() {

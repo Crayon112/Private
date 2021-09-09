@@ -1,14 +1,14 @@
 /**
  * 监控汇率变化
- * @author: Peng-YM
- * 更新地址：https://raw.githubusercontent.com/Peng-YM/QuanX/master/Tasks/exchange.js
+ * @author: Crayon112
  * 配置方法：
  * 1. 设置基准货币，默认人民币(CNY)。
  * 2. 设置保留几位小数。
  */
 
-const base = "CNY"; // 基准货币，可以改成其他币种
-const digits = 2; // 保留几位有效数字
+const access_key = "3929c033c8cf15348fc359fdc419c395";
+const base = "CNY";
+const digits = 3; // 保留几位有效数字
 
 const $ = API("exchange");
 const currencyNames = {
@@ -21,15 +21,16 @@ const currencyNames = {
 };
 
 
-$.http.get({url: "https://api.ratesapi.io/api/latest?base=CNY"})
+$.http.get({url: `http://api.exchangeratesapi.io/v1/latest?access_key=${access_key}`})
     .then((response) => {
         const data = JSON.parse(response.body);
         const source = currencyNames[base];
+        const transform_rate = 1 / data.rates[base];
 
         const info = Object.keys(currencyNames).reduce((accumulator, key) => {
             let line = "";
             if (key !== base && data.rates.hasOwnProperty(key)) {
-                const rate = parseFloat(data.rates[key]);
+                const rate = parseFloat(data.rates[key]) * transform_rate;
                 const target = currencyNames[key];
                 if (rate > 1) {
                     line = `${target[1]} 1${source[0]}兑${roundNumber(rate, digits)}${
@@ -49,7 +50,7 @@ $.http.get({url: "https://api.ratesapi.io/api/latest?base=CNY"})
             `📈 汇率情况：\n${info}`
         );
     })
-    .then(() => $.done());
+    .then(() => $.done('error!'));
 
 function roundNumber(num, scale) {
     if (!("" + num).includes("e")) {

@@ -12,12 +12,7 @@ let subscriptions = [
         link: "",
         name: "超级跑车",
         icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Alpha/pangci.png"
-    },
-    {
-        link: "",
-        name: "超级薯条",
-        icon: "https://raw.githubusercontent.com/Orz-3/mini/master/Alpha/fcz.png"
-    },
+    }
 ];
 
 const $ = API("flow");
