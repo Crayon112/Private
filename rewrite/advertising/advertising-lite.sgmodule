@@ -1,11 +1,5 @@
 #!name=复写去广告(严格版)
-#!desc=最后更新时间 2021-08-28 02:07:47
-#!author=blackmatrix7
-#!repo=https://github.com/blackmatrix7/ios_rule_script
-#!rewrite=692
-#!script=0
-#!force_http_engine_hosts=18
-#!mitm=513
+#!desc=去广告规则
 
 [General]
 force-http-engine-hosts = %APPEND% *.cp31.ott.cibntv.net,*.ott.cibntv.net,116.253.24.*,119.79*,122.14.246.33,124.14*,124.193*,175.102.178.52,175.6.26.*,211.162*,220.112*,220.169.153.*,222.218.85.*,intl.iqiyi.com,maicai.api.ddxq.mobi,mobileapi-v6.elong.com,weibointl.api.weibo.cn,wmapi.meituan.com
