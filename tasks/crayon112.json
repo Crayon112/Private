@@ -1,7 +1,7 @@
 {
 	"name": "Crayon112",
 	"task": [
-		{"config": "00 9 * * * https://raw.githubusercontent.com/Crayon112/CrossUtilityTools/master/scripts/github/github.js, tag=Github监控, enabled=true"},
+		{"config": "00 9 * * * https://raw.githubusercontent.com/Crayon112/CrossUtilityTools/master/scripts/github/github.js, tag=Github监控, enabled=true"}
 	],
 	"description": "Scripts Gallery"
 }
